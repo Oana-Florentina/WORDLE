@@ -30,7 +30,7 @@ class Grid:
     def add_guess(self, guess):
         self.guesses.append(guess)
 
-    def draw(self, screen, correct_word):
+    def draw(self, screen, correct_word, current_guess):
         for row in range(self.rows):
             for col in range(self.cols):
                 tile_rect = pygame.Rect(col * TILE_SIZE + PADDING, row * TILE_SIZE + MARGIN_TOP, TILE_SIZE - 2 * PADDING, TILE_SIZE - 2 * PADDING)
@@ -40,9 +40,11 @@ class Grid:
                     letter = self.guesses[row][col]
                     color = self.get_tile_color(letter, col, correct_word)
                     pygame.draw.rect(screen, color, tile_rect, border_radius=5)
-
-                    text_surface = FONT.render(letter, True, LETTER_COLOR)
-                    screen.blit(text_surface, (tile_rect.x + TILE_SIZE // 3, tile_rect.y + TILE_SIZE // 4))
+                    self.draw_letter(screen, letter, tile_rect)
+                elif row == len(self.guesses):
+                    if col < len(current_guess):
+                        letter = current_guess[col]
+                        self.draw_letter(screen, letter, tile_rect)
 
     def get_tile_color(self, letter, index, correct_word):
         if letter == correct_word[index]:
@@ -50,6 +52,11 @@ class Grid:
         elif letter in correct_word:
             return YELLOW
         return GRAY
+
+    def draw_letter(self, screen, letter, tile_rect):
+        text_surface = FONT.render(letter, True, LETTER_COLOR)
+        text_rect = text_surface.get_rect(center=tile_rect.center)
+        screen.blit(text_surface, text_rect.topleft)
 
 class InputHandler:
     def __init__(self):
@@ -117,7 +124,7 @@ class WordleGame:
         self.input_handler.reset_guess()
 
     def update_screen(self):
-        self.grid.draw(self.screen, self.correct_word)
+        self.grid.draw(self.screen, self.correct_word, self.input_handler.current_guess)
 
 if __name__ == "__main__":
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
